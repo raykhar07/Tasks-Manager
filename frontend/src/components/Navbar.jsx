@@ -54,7 +54,7 @@ export const Navbar = () => {
   const initial = user?.username?.trim().charAt(0).toUpperCase() || '?'
 
   return (
-    <nav className="sticky top-3 z-40 my-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/85 px-4 py-3 backdrop-blur-md">
+    <nav className="stagger sticky top-3 z-40 my-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/85 px-4 py-3 backdrop-blur-md">
       <Link
         to={isAuthenticated ? '/tasks' : '/'}
         className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine"
@@ -67,7 +67,7 @@ export const Navbar = () => {
         </span>
       </Link>
 
-      <ul className="flex flex-wrap items-center gap-2 text-sm">
+      <ul className="stagger flex flex-wrap items-center gap-2 text-sm">
         <li>
           <div
             role="group"

@@ -6,6 +6,10 @@ import jwt from "jsonwebtoken";
 import {config} from "../config.js";
 import { cookieOptions } from "../libs/cookie.js";
 
+// Hash de relleno con el que se compara cuando el email no existe. Evita que
+// el tiempo de respuesta (bcrypt tarda ~100 ms) revele si la cuenta existe.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("placeholder-no-usado-0", 10)
+
 const serializeUser = (user) => ({
   id: user._id,
   username: user.username,
@@ -15,7 +19,7 @@ const serializeUser = (user) => ({
 })
 
 const sendSession = async (res, user, message) => {
-  const token = await createAccessToken({ id: user._id });
+  const token = await createAccessToken({ id: user._id, tokenVersion: user.tokenVersion ?? 0 });
   res.cookie("token", token, cookieOptions)
   res.json({
     message,
@@ -38,10 +42,15 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email }).select("+password");
 
-  if (!user) return res.status(400).json({ message: "Usuario no encontrado" });
+  // Se compara siempre (contra un hash de relleno si el email no existe) para
+  // no distinguir por tiempo si la cuenta está registrada.
+  const isMatch = await bcrypt.compare(password, user?.password ?? DUMMY_PASSWORD_HASH);
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Credenciales inválidas" });
+  // Un único mensaje para "no existe" y "contraseña incorrecta": evita
+  // enumerar cuentas registradas.
+  if (!user || !isMatch) {
+    return res.status(400).json({ message: "Credenciales inválidas" });
+  }
 
   await sendSession(res, user, "Usuario logueado correctamente");
 }
@@ -101,9 +110,13 @@ export const updatePassword = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(newPassword, 10)
   user.password = hashedPassword
+  // Invalida los JWT emitidos con la contraseña anterior.
+  user.tokenVersion = (user.tokenVersion ?? 0) + 1
   await user.save()
 
-  return res.json({ message: "Contraseña actualizada correctamente" })
+  // Se reemite la sesión actual para que quien cambia la contraseña siga
+  // dentro, pero cualquier token previo queda revocado.
+  return sendSession(res, user, "Contraseña actualizada correctamente")
 }
 
 export const deleteProfile = async (req, res) => {
@@ -126,11 +139,20 @@ export const verify = async (req, res) => {
   if (!token) return res.json(null)
 
   try {
-    const payload = jwt.verify(token, config.SECRET_KEY)
+    const payload = jwt.verify(token, config.SECRET_KEY, { algorithms: ["HS256"] })
     const user = await User.findById(payload.id)
-    res.json(user ? serializeUser(user) : null)
+
+    const sesionValida =
+      user && (payload.tokenVersion ?? 0) === (user.tokenVersion ?? 0)
+
+    if (!sesionValida) {
+      res.clearCookie("token", cookieOptions)
+      return res.json(null)
+    }
+
+    return res.json(serializeUser(user))
   } catch (error) {
     res.clearCookie("token", cookieOptions)
     res.json(null)
   }
-  }
+}

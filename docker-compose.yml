@@ -4,7 +4,7 @@ services:
     container_name: mern-mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
     environment:
@@ -27,7 +27,7 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/merndb
       - PORT=3000
       - CLIENT_URL=http://localhost:5173
-      - JWT_SECRET=dev_secret_change_in_prod
+      # JWT_SECRET se toma de backend/.env (env_file), no se fija aquí.
     volumes:
       - ./backend:/app
       - /app/node_modules

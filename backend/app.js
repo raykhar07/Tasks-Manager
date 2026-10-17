@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { config } from "./config.js";
 import {errorHandler} from "./middlewares/errorHandler.js";
+import { apiLimiter } from "./middlewares/rateLimit.js";
 
 
 const app = express();
@@ -20,9 +21,9 @@ app.use(express.json());
 if (!config.isProduction && process.env.NODE_ENV !== 'test') app.use(morgan('dev'))
 app.use(cookieParser());
 app.get('/api/health', (_req, res) => {
-  res.status(200).json({ status: 'ok', uptime: process.uptime() })
+  res.status(200).json({ status: 'ok' })
 });
-app.use("/api",authRoutes, taskRoutes);
+app.use("/api", apiLimiter, authRoutes, taskRoutes);
 app.use((req, res) => {
   res.status(404).json({ message: "Ruta no encontrada" });
 });

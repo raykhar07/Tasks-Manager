@@ -6,7 +6,7 @@ export const createAccessToken = (payload)=> {
     jwt.sign(
     payload, 
     config.SECRET_KEY, 
-    {expiresIn: "1d"},
+    {expiresIn: "1d", algorithm: "HS256"},
     (err, token)=> {
       if (err) {
         return rej(err);

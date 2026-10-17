@@ -10,13 +10,13 @@ import {ProtectedRoute} from './components/ProtectedRoute.jsx'
 import {TaskContextProvider} from './context/TaskContext.Provider.jsx'
 import { Navbar } from './components/Navbar.jsx'
 
-// Cada cambio de ruta vuelve a montar el contenedor (key = pathname), lo que
-// dispara una única animación de entrada. Es la señal de "has cambiado de página".
+// La clave (key) es la ruta: al cambiar de pestaña se monta un contenedor
+// nuevo, y la animación de entrada del <main> se vuelve a disparar.
 const AnimatedRoutes = () => {
   const location = useLocation()
 
   return (
-    <div key={location.pathname} className="animate-page-in">
+    <div key={location.pathname}>
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -38,7 +38,7 @@ export const App = () => {
     <AuthProvider>
       <TaskContextProvider>
         <BrowserRouter>
-          <main className="container mx-auto px-6 pb-16 sm:px-10">
+          <main className="stagger container mx-auto px-6 pb-16 sm:px-10">
             <Navbar/>
             <AnimatedRoutes />
           </main>

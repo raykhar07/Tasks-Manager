@@ -2,8 +2,8 @@ import request from 'supertest'
 import app from '../app.js'
 
 describe('Tasks Routes', () => {
-  const userA = { username: 'alice', email: 'alice@test.com', password: '123456' }
-  const userB = { username: 'bob', email: 'bob@test.com', password: '123456' }
+  const userA = { username: 'alice', email: 'alice@test.com', password: '12345678' }
+  const userB = { username: 'bob', email: 'bob@test.com', password: '12345678' }
 
   const taskPayload = {
     title: 'Tarea de prueba',

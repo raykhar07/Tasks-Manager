@@ -85,14 +85,14 @@ export const RegisterPage = () => {
               id="password"
               type="password"
               autoComplete="new-password"
-              placeholder="Mínimo 6 caracteres"
-              {...register('password', { required: true, minLength: 6 })}
+              placeholder="Mínimo 8 caracteres"
+              {...register('password', { required: true, minLength: 8 })}
               className={inputClasses}
             />
             {errors.password && (
               <p className="mt-1.5 text-xs text-brick">
                 {errors.password.type === 'minLength'
-                  ? 'La contraseña debe tener al menos 6 caracteres'
+                  ? 'La contraseña debe tener al menos 8 caracteres'
                   : 'La contraseña es requerida'}
               </p>
             )}

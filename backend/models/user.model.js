@@ -13,7 +13,15 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    // El hash nunca se incluye en las consultas salvo que se pida con
+    // .select('+password'): así no se filtra por accidente en respuestas.
+    select: false
+  },
+  // Se incrementa al cambiar la contraseña para invalidar los JWT ya emitidos.
+  tokenVersion: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

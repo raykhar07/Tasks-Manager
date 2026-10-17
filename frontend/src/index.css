@@ -140,26 +140,34 @@
 /* ------------------------------------------------------------
    Movimiento
    Un solo sistema, no efectos sueltos:
-     · .animate-page-in  la pestaña entra con un fundido
-     · .stagger          sus elementos aparecen de arriba a abajo
+     · .stagger          los elementos aparecen de arriba a abajo
      · .press            los botones responden y proyectan sombra
      · .lift             las tarjetas se despegan del papel
      · card-out          borrar una tarea la retira (respuesta a tu acción)
-   ------------------------------------------------------------ */
 
-@keyframes page-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+   La entrada se aplica con .stagger en el contenedor: cada hijo
+   directo aparece en secuencia, de arriba hacia abajo. Anidar
+   .stagger hace que un bloque entre y, a la vez, sus hijos.
+   ------------------------------------------------------------ */
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Versión de recorrido corto. Se usa cuando el sistema pide
+   "reducir movimiento": se conserva la aparición progresiva (que es
+   información de la interfaz), pero con menos desplazamiento. */
+@keyframes rise-soft {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -174,30 +182,24 @@
   }
 }
 
-.animate-page-in {
-  animation: page-in 280ms ease-out backwards;
-}
-
-/* Anima a los hijos directos de arriba a abajo. Se puede anidar: el
-   contenedor entra como un bloque y a la vez sus hijos van apareciendo.
-   Con fill "backwards" el estado oculto solo dura durante el retardo,
+/* Con fill "backwards" el estado oculto solo dura durante el retardo,
    así no secuestra el hover ni el :active cuando termina. */
 .stagger > * {
-  animation: rise-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: rise-in 460ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
-.stagger > *:nth-child(2) { animation-delay: 55ms; }
-.stagger > *:nth-child(3) { animation-delay: 110ms; }
-.stagger > *:nth-child(4) { animation-delay: 165ms; }
-.stagger > *:nth-child(5) { animation-delay: 220ms; }
-.stagger > *:nth-child(6) { animation-delay: 275ms; }
-.stagger > *:nth-child(7) { animation-delay: 330ms; }
-.stagger > *:nth-child(8) { animation-delay: 385ms; }
-.stagger > *:nth-child(9) { animation-delay: 440ms; }
-.stagger > *:nth-child(10) { animation-delay: 495ms; }
-.stagger > *:nth-child(11) { animation-delay: 550ms; }
-.stagger > *:nth-child(12) { animation-delay: 605ms; }
-.stagger > *:nth-child(n + 13) { animation-delay: 660ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+.stagger > *:nth-child(7) { animation-delay: 360ms; }
+.stagger > *:nth-child(8) { animation-delay: 420ms; }
+.stagger > *:nth-child(9) { animation-delay: 480ms; }
+.stagger > *:nth-child(10) { animation-delay: 540ms; }
+.stagger > *:nth-child(11) { animation-delay: 600ms; }
+.stagger > *:nth-child(12) { animation-delay: 660ms; }
+.stagger > *:nth-child(n + 13) { animation-delay: 720ms; }
 
 /* Botones: sombra en reposo, se levantan al pasar el cursor y se
    hunden al presionar. Las sombras se desactivan con :focus-visible
@@ -238,13 +240,17 @@
   box-shadow: var(--shadow-lift);
 }
 
+/* El sistema pide menos movimiento: se recorta el recorrido de la
+   entrada y se quitan los rebotes de hover/presión (que son
+   decorativos), pero la aparición progresiva se mantiene. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .stagger > * {
+    animation-name: rise-soft;
+    animation-duration: 320ms;
+  }
+  .lift:hover,
+  .press:hover:not(:disabled):not(:focus-visible),
+  .press:active:not(:disabled):not(:focus-visible) {
+    transform: none;
   }
 }

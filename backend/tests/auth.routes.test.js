@@ -6,7 +6,7 @@ describe('Auth Routes', () => {
   const user = {
     username: 'testuser',
     email: 'test@example.com',
-    password: '123456'
+    password: '12345678'
   }
 
   it('POST /api/register debe crear un usuario y devolver cookie/token', async () => {
@@ -46,6 +46,42 @@ describe('Auth Routes', () => {
       .send({ email: 'wrong@test.com', password: 'wrongpass' })
 
     expect(res.status).toBe(400)
+  })
+
+  it('POST /api/login no debe revelar si el email existe (mismo error)', async () => {
+    await request(app).post('/api/register').send(user)
+
+    const unknownEmail = await request(app)
+      .post('/api/login')
+      .send({ email: 'nadie@test.com', password: 'cualquiera1' })
+
+    const wrongPassword = await request(app)
+      .post('/api/login')
+      .send({ email: user.email, password: 'incorrecta1' })
+
+    expect(unknownEmail.status).toBe(wrongPassword.status)
+    expect(unknownEmail.body.message).toBe(wrongPassword.body.message)
+  })
+
+  it('PUT /api/profile/password debe invalidar las sesiones anteriores', async () => {
+    const agent = request.agent(app)
+    const registro = await agent.post('/api/register').send(user)
+    const cookieAntigua = registro.headers['set-cookie'][0]
+
+    const cambio = await agent
+      .put('/api/profile/password')
+      .send({ currentPassword: user.password, newPassword: 'nuevaClave123' })
+    expect(cambio.status).toBe(200)
+
+    // El token emitido antes del cambio ya no sirve.
+    const conTokenAntiguo = await request(app)
+      .get('/api/profile')
+      .set('Cookie', cookieAntigua)
+    expect(conTokenAntiguo.status).toBe(401)
+
+    // La sesión reemitida sigue funcionando.
+    const conTokenNuevo = await agent.get('/api/profile')
+    expect(conTokenNuevo.status).toBe(200)
   })
 
   it('GET /api/profile debe requerir autenticación', async () => {

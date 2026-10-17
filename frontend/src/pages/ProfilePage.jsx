@@ -266,7 +266,7 @@ export const ProfilePage = () => {
               autoComplete="current-password"
               {...registerPass('currentPassword', {
                 required: 'La contraseña actual es requerida',
-                minLength: { value: 6, message: 'Mínimo 6 caracteres' }
+                minLength: { value: 8, message: 'Mínimo 8 caracteres' }
               })}
               className={inputClasses}
             />
@@ -287,7 +287,7 @@ export const ProfilePage = () => {
               autoComplete="new-password"
               {...registerPass('newPassword', {
                 required: 'La nueva contraseña es requerida',
-                minLength: { value: 6, message: 'Mínimo 6 caracteres' }
+                minLength: { value: 8, message: 'Mínimo 8 caracteres' }
               })}
               className={inputClasses}
             />
@@ -308,7 +308,7 @@ export const ProfilePage = () => {
               autoComplete="new-password"
               {...registerPass('confirmPassword', {
                 required: 'Confirma la nueva contraseña',
-                minLength: { value: 6, message: 'Mínimo 6 caracteres' }
+                minLength: { value: 8, message: 'Mínimo 8 caracteres' }
               })}
               className={inputClasses}
             />
