@@ -16,6 +16,7 @@ Aplicación fullstack de **gestión de tareas** con autenticación por **JWT en 
 - [API REST](#-api-rest)
 - [Tests](#-tests)
 - [Docker](#-docker)
+- [Despliegue](#-despliegue)
 - [Seguridad](#-seguridad)
 - [Sistema de diseño](#-sistema-de-diseño)
 - [Scripts disponibles](#-scripts-disponibles)
@@ -27,7 +28,7 @@ Aplicación fullstack de **gestión de tareas** con autenticación por **JWT en 
 
 ### Autenticación y sesión
 - Registro e inicio de sesión con contraseña hasheada (**bcrypt**, 10 rondas).
-- Sesión mediante **JWT firmado (HS256)** almacenado en **cookie `httpOnly`**, `SameSite=Lax` y `Secure` en producción.
+- Sesión mediante **JWT firmado (HS256)** almacenado en **cookie `httpOnly`**, `SameSite` configurable (`lax` por defecto / `none` para dominios distintos) y `Secure` en producción.
 - Verificación de sesión al cargar la app con restauración automática del usuario.
 - Cierre de sesión y **revocación de sesiones anteriores** al cambiar la contraseña.
 - Rutas protegidas en el frontend (`ProtectedRoute`) y en el backend (`authRequired`).
@@ -99,6 +100,7 @@ Mern-stack-auth/
 │
 ├── docker-compose.yml        # Entorno de desarrollo
 ├── docker-compose.prod.yml   # Entorno de producción
+├── DEPLOY.md                 # Guía de despliegue paso a paso
 └── .gitignore
 ```
 
@@ -166,6 +168,7 @@ Con ambos servicios en marcha, abre **http://localhost:5173**.
 | `JWT_SECRET` | Secreto para firmar JWT (**mínimo 32 caracteres**) | `d8aa21…` |
 | `CLIENT_URL` | Origen permitido por CORS | `http://localhost:5173` |
 | `NODE_ENV` | Entorno (`development` / `production`) | `development` |
+| `COOKIE_SAMESITE` | SameSite de la cookie (`lax` mismo sitio / `none` dominios distintos) | `lax` |
 
 ### Frontend (`frontend/.env`)
 
@@ -255,13 +258,32 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 ---
 
+## ☁️ Despliegue
+
+La guía completa, paso a paso, está en **[DEPLOY.md](./DEPLOY.md)**. Configuración recomendada:
+
+| Componente | Plataforma | Notas |
+|---|---|---|
+| **Base de datos** | [MongoDB Atlas](https://www.mongodb.com/atlas) | Cluster gratuito **M0**; permite `0.0.0.0/0` en Network Access |
+| **Backend** | [Render](https://render.com) | Web Service con *Root Directory* `backend`, `npm start` |
+| **Frontend** | [Vercel](https://vercel.com) | *Root Directory* `frontend`, preset **Vite** |
+
+**Resumen de variables en producción:**
+
+- **Render** (backend): `NODE_ENV=production`, `MONGODB_URI`, `JWT_SECRET` (≥ 32 caracteres), `CLIENT_URL` (URL de Vercel, sin barra final) y `COOKIE_SAMESITE=none`. **No** definas `PORT`.
+- **Vercel** (frontend): `VITE_API_URL` = URL del backend terminada en `/api` (se incrusta en el **build**; si cambia, hay que **redesplegar**).
+
+> 🔗 Por defecto el frontend (`*.vercel.app`) y el backend (`*.onrender.com`) son **dominios distintos**, por eso se usa `COOKIE_SAMESITE=none`. Con un dominio propio en subdominios (`app.` + `api.`) puedes usar `lax`. Ver anexos de [DEPLOY.md](./DEPLOY.md).
+
+---
+
 ## 🛡 Seguridad
 
 El proyecto pasó por una auditoría de seguridad completa. Controles implementados:
 
 **Sesiones y contraseñas**
 - JWT firmado con **HS256** (algoritmo fijado en firma y verificación).
-- Cookie **`httpOnly` + `SameSite=Lax`** y `Secure` en producción.
+- Cookie **`httpOnly` + `SameSite`** (configurable con `COOKIE_SAMESITE`) y `Secure` en producción.
 - Contraseña hasheada con bcrypt; el hash tiene `select: false` y nunca se expone.
 - Política de contraseñas: **mínimo 8 y máximo 128 caracteres**.
 - **`tokenVersion`**: al cambiar la contraseña se revocan todos los tokens anteriores.
