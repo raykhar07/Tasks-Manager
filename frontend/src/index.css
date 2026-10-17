@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Sistema de diseño "Campo"
+   ------------------------------------------------------------
+   Un gestor de tareas es un cuaderno que se consulta a diario:
+   papel, tinta y una marca de color. El color nunca decora: informa.
+
+     paper    fondo            ink      texto principal
+     surface  tarjetas         line     bordes
+     pine     acción           ochre    atención / fechas
+     brick    corrección       on-pine  texto sobre la acción
+
+   Dos temas, un solo sistema: los componentes usan tokens
+   (bg-paper, text-ink, bg-pine…), nunca valores fijos. Por eso
+   el cambio de tema son solo las variables de :root / .dark,
+   sin tocar ni un componente.
+
+   Tipografía: IBM Plex Serif para títulos (voz editorial, de
+   cuaderno) e IBM Plex Sans para toda la interfaz.
+   ============================================================ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  /* Papel y tinta */
+  --paper: #e6e9e3;
+  --surface: #f6f7f3;
+  --ink: #1b2320;
+  --ink-soft: #5b665f;
+  --ink-faint: #8a938c;
+  --line: #cdd4cb;
+  --line-strong: #b3bdb1;
+
+  /* Acción — pino */
+  --pine: #1b5e4a;
+  --pine-strong: #14483a;
+  --pine-soft: #dde9e2;
+  --on-pine: #ffffff;
+
+  /* Atención — ocre */
+  --ochre: #8a5e0a;
+  --ochre-soft: #f0e4c8;
+
+  /* Corrección — ladrillo */
+  --brick: #a6402e;
+  --brick-soft: #f2ddd6;
+
+  /* Tipografía */
+  --font-ui: "IBM Plex Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "IBM Plex Serif", ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Sombras: tintadas con la tinta, nunca negro puro */
+  --shadow-rest: 0 1px 2px rgba(20, 32, 27, 0.08), 0 1px 3px rgba(20, 32, 27, 0.06);
+  --shadow-lift: 0 6px 16px -4px rgba(20, 32, 27, 0.18), 0 2px 6px -2px rgba(20, 32, 27, 0.1);
+  --shadow-press: inset 0 2px 4px rgba(20, 32, 27, 0.16);
+}
+
+/* "Campo nocturno": la misma tinta, de noche.
+   No es negro: es verde-pino profundo, y el pino se vuelve
+   una señal clara que se lee sobre la superficie oscura. */
+.dark {
+  color-scheme: dark;
+
+  --paper: #131c18;
+  --surface: #1b2621;
+  --ink: #e8ede7;
+  --ink-soft: #a3afa6;
+  --ink-faint: #7a877e;
+  --line: #2e3c35;
+  --line-strong: #3d4c44;
+
+  --pine: #54b08d;
+  --pine-strong: #6bc29f;
+  --pine-soft: #1e3a30;
+  --on-pine: #0d1713;
+
+  --ochre: #d9a441;
+  --ochre-soft: #3a2e14;
+
+  --brick: #e2795f;
+  --brick-soft: #3b211b;
+
+  /* En oscuro la sombra no se lee: se sustituye por profundidad y luz del borde */
+  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 10px 24px -6px rgba(0, 0, 0, 0.72);
+  --shadow-press: inset 0 2px 5px rgba(0, 0, 0, 0.55);
+}
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-pine: var(--pine);
+  --color-pine-strong: var(--pine-strong);
+  --color-pine-soft: var(--pine-soft);
+  --color-on-pine: var(--on-pine);
+
+  --color-ochre: var(--ochre);
+  --color-ochre-soft: var(--ochre-soft);
+
+  --color-brick: var(--brick);
+  --color-brick-soft: var(--brick-soft);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-ui);
+    background-color: var(--paper);
+    color: var(--ink);
+    transition: background-color 300ms ease, color 300ms ease;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--ochre-soft);
+    color: var(--ink);
+  }
+}
+
+/* ------------------------------------------------------------
+   Movimiento
+   Un solo sistema, no efectos sueltos:
+     · .animate-page-in  la pestaña entra con un fundido
+     · .stagger          sus elementos aparecen de arriba a abajo
+     · .press            los botones responden y proyectan sombra
+     · .lift             las tarjetas se despegan del papel
+     · card-out          borrar una tarea la retira (respuesta a tu acción)
+   ------------------------------------------------------------ */
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes card-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+.animate-page-in {
+  animation: page-in 280ms ease-out backwards;
+}
+
+/* Anima a los hijos directos de arriba a abajo. Se puede anidar: el
+   contenedor entra como un bloque y a la vez sus hijos van apareciendo.
+   Con fill "backwards" el estado oculto solo dura durante el retardo,
+   así no secuestra el hover ni el :active cuando termina. */
+.stagger > * {
+  animation: rise-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 55ms; }
+.stagger > *:nth-child(3) { animation-delay: 110ms; }
+.stagger > *:nth-child(4) { animation-delay: 165ms; }
+.stagger > *:nth-child(5) { animation-delay: 220ms; }
+.stagger > *:nth-child(6) { animation-delay: 275ms; }
+.stagger > *:nth-child(7) { animation-delay: 330ms; }
+.stagger > *:nth-child(8) { animation-delay: 385ms; }
+.stagger > *:nth-child(9) { animation-delay: 440ms; }
+.stagger > *:nth-child(10) { animation-delay: 495ms; }
+.stagger > *:nth-child(11) { animation-delay: 550ms; }
+.stagger > *:nth-child(12) { animation-delay: 605ms; }
+.stagger > *:nth-child(n + 13) { animation-delay: 660ms; }
+
+/* Botones: sombra en reposo, se levantan al pasar el cursor y se
+   hunden al presionar. Las sombras se desactivan con :focus-visible
+   para no pisar el anillo de foco, que en Tailwind también es un
+   box-shadow (si no, el foco por teclado quedaría invisible). */
+.press {
+  transition:
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 150ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.press:not(:focus-visible) {
+  box-shadow: var(--shadow-rest);
+}
+.press:hover:not(:disabled):not(:focus-visible) {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+.press:active:not(:disabled):not(:focus-visible) {
+  box-shadow: var(--shadow-press);
+  transform: translateY(0) scale(0.975);
+}
+.press:disabled {
+  box-shadow: none;
+}
+
+/* Tarjetas interactivas */
+.lift {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

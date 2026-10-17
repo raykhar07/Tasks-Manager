@@ -1,0 +1,13 @@
+import 'dotenv/config'
+
+for (const key of ['JWT_SECRET', 'MONGODB_URI']) {
+  if (!process.env[key]) throw new Error(`Falta la variable de entorno ${key}`)
+}
+
+export const config = {
+  PORT: process.env.PORT ?? 3000,
+  MONGODB_URI: process.env.MONGODB_URI,
+  SECRET_KEY: process.env.JWT_SECRET,
+  CLIENT_URL: process.env.CLIENT_URL ?? 'http://localhost:5173',
+  isProduction: process.env.NODE_ENV === 'production'
+}

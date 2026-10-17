@@ -1,0 +1,49 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mern-mongo-prod
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - mern-net
+    # No exponer puerto 27017 en prod (solo red interna)
+
+  backend:
+    build:
+      context: ./backend
+      target: prod
+    container_name: mern-backend-prod
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/merndb
+      - PORT=3000
+      - CLIENT_URL=${CLIENT_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongo
+    networks:
+      - mern-net
+
+  frontend:
+    build:
+      context: ./frontend
+      target: prod
+    container_name: mern-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mern-net
+
+volumes:
+  mongo_data:
+
+networks:
+  mern-net:
+    driver: bridge
